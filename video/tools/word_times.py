@@ -114,7 +114,7 @@ def glob_escape(s: str) -> str:
 
 
 def listen(model, path: Path, lang: str | None):
-    segs, info = model.transcribe(str(path), language=lang, vad_filter=True, word_timestamps=True)
+    segs, info = model.transcribe(str(path), language=lang, vad_filter=True, word_timestamps=True, condition_on_previous_text=False)
     words, last = [], -1
     for seg in segs:
         for w in seg.words or []:

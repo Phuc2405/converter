@@ -28,6 +28,10 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 
+# Câu Whisper hay bịa ở chỗ có nhạc, tiếng ồn hay lời chào đầu, cuối video (học từ phụ đề YouTube), không phải lời người giảng.
+HALLU = re.compile(r"subscribe|ghiền mì gõ|đăng ký kênh|bỏ lỡ những video|like và share|amara\.org|subtitles by|thanks for watching", re.I)
+
+
 def ts(sec: float) -> str:
     sec = int(sec)
     h, m, s = sec // 3600, sec % 3600 // 60, sec % 60
@@ -147,16 +151,24 @@ def whisper(path: Path, out: Path, title: str, source: str, lang: str, model_nam
     print("Loading model (first run downloads it)...", flush=True)
     model, device, model_name = load_model(model_name, device)
     lang = None if lang in ("", "auto") else lang
-    segments, info = model.transcribe(str(path), language=lang, vad_filter=True, word_timestamps=True)
+    # condition_on_previous_text=False: không lấy câu vừa chép làm mồi cho câu sau. Bật thì một câu bịa (Whisper hay bịa "Hãy subscribe
+    # cho kênh…" ở đoạn nhạc, lời chào đầu video) lặp mãi, nuốt mất mấy phút lời thật (video Đỗ Đức Ngọc tập 5 mất gần 5 phút).
+    segments, info = model.transcribe(str(path), language=lang, vad_filter=True, word_timestamps=True, condition_on_previous_text=False)
     print(f"Model {model_name} on {device}, language {info.language}, {ts(info.duration)} of audio", flush=True)
     segs, words, last = [], [], -1
+    dropped = 0
     for seg in segments:
+        if HALLU.search(seg.text):  # câu bịa quen thuộc của Whisper: bỏ cả đoạn
+            dropped += 1
+            continue
         segs.append((seg.start, seg.end, seg.text))
         words += [(w.start, w.word.strip()) for w in seg.words or []]
         pct = int(seg.end * 100 / info.duration) if info.duration else 0
         if pct != last:
             print(f"PROGRESS {min(pct, 99)}", flush=True)
             last = pct
+    if dropped:
+        print(f"bỏ {dropped} đoạn Whisper bịa (subscribe, đăng ký kênh…)", flush=True)
     write_md(out, title, source, f"faster-whisper, model {model_name} ({device}), ngôn ngữ {info.language}", to_paragraphs(segs))
     try:  # mốc giờ của từng chữ, để app tô sáng chữ đang đọc (tools/word_times.py)
         from word_times import save
