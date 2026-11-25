@@ -127,7 +127,8 @@ def listen(model, path: Path, lang: str | None):
 
 
 def lang_of(md: Path) -> str | None:
-    m = re.search(r"ngôn ngữ (\w+)", md.read_text(encoding="utf-8")[:600])
+    # chỉ đọc dòng "- **Cách lấy** …, ngôn ngữ vi" ở đầu file (lời video cũng có thể có chữ "ngôn ngữ và…")
+    m = re.search(r"^- \*\*Cách lấy\*\*.*ngôn ngữ ([a-z]{2,3})\s*$", md.read_text(encoding="utf-8")[:800], re.M)
     return m.group(1) if m else None
 
 
