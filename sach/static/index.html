@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sách</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="top">
+    <b class="brand">Sách</b>
+    <div class="seg" id="modeSeg" hidden>
+      <button type="button" data-mode="split">Xem cùng bản gốc</button>
+      <button type="button" data-mode="text">Chỉ bản chữ</button>
+    </div>
+    <button type="button" class="btn small" id="syncBtn" hidden title="Đưa bản gốc tới đúng trang đang đọc bên phải">Tới trang đang đọc</button>
+    <span class="grow"></span>
+    <span class="fs" title="Cỡ chữ"><button type="button" data-fs="-1" aria-label="Chữ nhỏ hơn">A−</button><button type="button" data-fs="1" aria-label="Chữ to hơn">A+</button></span>
+    <button type="button" class="btn primary" id="addBtn">＋ Thêm sách</button>
+    <input type="file" id="fileIn" multiple hidden accept=".pdf,.docx,.doc,.pptx,.xlsx,.txt,.md,.epub,.html">
+  </header>
+  <div class="body">
+    <aside class="side">
+      <input type="search" id="filter" placeholder="Lọc theo tên…" autocomplete="off">
+      <div class="list" id="list"></div>
+    </aside>
+    <main class="main" id="main">
+      <div class="empty">
+        <p><b>Chưa chọn sách.</b></p>
+        <p>Bấm “＋ Thêm sách” hoặc thả file vào cửa sổ này. Server chuyển sang bản chữ ở nền (PDF quét thì tự OCR).</p>
+      </div>
+    </main>
+  </div>
+  <div class="drop" id="drop" hidden>Thả file sách vào đây</div>
+  <div class="toast" id="toast" hidden></div>
+  <script src="/static/common.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# Chỉ cài khi máy có card NVIDIA (setup.bat tự kiểm bằng nvidia-smi). Khoảng 1 GB.
+# Có các gói này thì tools/transcribe.py chép lời bằng GPU (model large-v3-turbo), không có thì tự dùng CPU (model small).
+nvidia-cublas-cu12
+nvidia-cudnn-cu12==9.*

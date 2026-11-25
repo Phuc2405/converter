@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*/data/goc/*
+*/data/md/*
+*/data/word-times/*
+*/data/_da-xoa/
+*/data/models/
+!*/data/*/.gitkeep

@@ -1,0 +1,4 @@
+# Thư viện của cả hai dịch vụ, cho ai muốn dùng chung một môi trường.
+# Mỗi dịch vụ vẫn có requirements riêng (setup.bat của từng thư mục dùng file đó).
+-r sach/requirements.txt
+-r video/requirements.txt

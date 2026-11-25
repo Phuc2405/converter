@@ -1,0 +1,10 @@
+# OCR tiếng Việt chính xác hơn cho PDF quét (tools/ocr.py, engine "viet": Tesseract tìm dòng, VietOCR đọc chữ).
+# Chỉ đáng cài khi máy có card NVIDIA (trên CPU chạy rất chậm). Khoảng 3 GB.
+# Cài theo đúng thứ tự này (setup.bat làm giúp khi thấy card NVIDIA):
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+#   pip install --no-deps vietocr
+#   pip install -r requirements-ocr.txt
+# vietocr phải cài --no-deps: gói đó ghim các bản thư viện rất cũ (pillow 10.2, einops 0.2…) không cài được trên Python mới,
+# trong khi phần đọc chữ chỉ cần mấy gói dưới đây.
+einops
+gdown

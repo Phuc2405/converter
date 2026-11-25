@@ -1,0 +1,3 @@
+faster-whisper
+# chỉ cần khi chép lời từ link YouTube bằng dòng lệnh (tools/transcribe.py <link>)
+yt-dlp

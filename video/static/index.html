@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Video</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="top">
+    <b class="brand">Video</b>
+    <span class="hint" id="topHint"></span>
+    <span class="grow"></span>
+    <span class="fs" title="Cỡ chữ"><button type="button" data-fs="-1" aria-label="Chữ nhỏ hơn">A−</button><button type="button" data-fs="1" aria-label="Chữ to hơn">A+</button></span>
+    <button type="button" class="btn primary" id="addBtn">＋ Thêm video</button>
+    <input type="file" id="fileIn" multiple hidden accept="video/*,audio/*,.mkv,.m4a">
+  </header>
+  <div class="body">
+    <aside class="side">
+      <input type="search" id="filter" placeholder="Lọc theo tên…" autocomplete="off">
+      <div class="list" id="list"></div>
+    </aside>
+    <main class="main" id="main">
+      <div class="empty">
+        <p><b>Chưa chọn video.</b></p>
+        <p>Bấm “＋ Thêm video” hoặc thả file vào cửa sổ này. Server chép lời ở nền; xong thì lời chạy theo video, bấm một chữ là video chạy từ chữ đó.</p>
+      </div>
+    </main>
+  </div>
+  <div class="drop" id="drop" hidden>Thả video vào đây</div>
+  <div class="toast" id="toast" hidden></div>
+  <script src="/static/common.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
