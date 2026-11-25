@@ -156,10 +156,10 @@ def whisper(path: Path, out: Path, title: str, source: str, lang: str, model_nam
     segments, info = model.transcribe(str(path), language=lang, vad_filter=True, word_timestamps=True, condition_on_previous_text=False)
     print(f"Model {model_name} on {device}, language {info.language}, {ts(info.duration)} of audio", flush=True)
     segs, words, last = [], [], -1
-    dropped = 0
+    dropped = []
     for seg in segments:
-        if HALLU.search(seg.text):  # câu bịa quen thuộc của Whisper: bỏ cả đoạn
-            dropped += 1
+        if HALLU.search(seg.text):  # câu bịa quen thuộc của Whisper: bỏ, nhớ khoảng giờ để nghe lại theo mẩu nhỏ
+            dropped.append((seg.start, seg.end))
             continue
         segs.append((seg.start, seg.end, seg.text))
         words += [(w.start, w.word.strip()) for w in seg.words or []]
@@ -168,13 +168,48 @@ def whisper(path: Path, out: Path, title: str, source: str, lang: str, model_nam
             print(f"PROGRESS {min(pct, 99)}", flush=True)
             last = pct
     if dropped:
-        print(f"bỏ {dropped} đoạn Whisper bịa (subscribe, đăng ký kênh…)", flush=True)
+        print(f"bỏ {len(dropped)} đoạn Whisper bịa (subscribe, đăng ký kênh…), nghe lại theo mẩu 8 giây", flush=True)
+        # Giờ ghi trên câu bịa thường ngắn hơn khoảng bị bỏ thật (tập 5: câu bịa ghi 3,9 đến 8,8 giây mà cả 0 đến 37,3 giây trắng):
+        # nghe lại cả khoảng trống giữa câu đúng liền trước và câu đúng liền sau.
+        gaps = []
+        for a0, b0 in dropped:
+            lo = max([e for _s, e, _t in segs if e <= a0 + 0.01], default=0.0)
+            hi = min([st for st, _e, _t in segs if st >= b0 - 0.01], default=info.duration or b0)
+            if gaps and lo <= gaps[-1][1]:
+                gaps[-1] = (gaps[-1][0], max(gaps[-1][1], hi))
+            else:
+                gaps.append((lo, hi))
+        more, more_words = relisten(model, path, gaps, lang or info.language)
+        segs = sorted(segs + more)
+        words = sorted(words + more_words)
+        print(f"nghe lại được {len(more)} câu", flush=True)
     write_md(out, title, source, f"faster-whisper, model {model_name} ({device}), ngôn ngữ {info.language}", to_paragraphs(segs))
     try:  # mốc giờ của từng chữ, để app tô sáng chữ đang đọc (tools/word_times.py)
         from word_times import save
         save(out, words)
     except Exception as e:  # noqa: BLE001  (thiếu mốc thì app chỉ tô cả đoạn, bản chữ vẫn dùng được)
         print(f"word times skipped: {type(e).__name__}: {e}", flush=True)
+
+
+def relisten(model, path: Path, ranges, lang, step: float = 8.0):
+    """Whisper nghe theo khung 30 giây: khung nào bị bịa câu ("subscribe…") thì cả khung bị bỏ, mất luôn lời thật trong đó
+    (video Đỗ Đức Ngọc tập 5: 16 đến 37 giây là lời giảng mà bị bỏ). Nghe lại khoảng đó theo từng mẩu ngắn, không lọc khoảng lặng,
+    giữ câu không bị bịa và không phải khoảng lặng. Trả (các câu, các chữ) đã cộng giờ bắt đầu của mẩu."""
+    from faster_whisper import decode_audio
+    audio, sr = decode_audio(str(path)), 16000
+    segs, words = [], []
+    for a, b in ranges:
+        t = a
+        while t < b - 0.5:
+            piece = audio[int(t * sr):int(min(b, t + step) * sr)]
+            out, _ = model.transcribe(piece, language=lang, vad_filter=False, word_timestamps=True, condition_on_previous_text=False)
+            for seg in out:
+                if HALLU.search(seg.text) or seg.no_speech_prob > 0.6 or not seg.text.strip():
+                    continue
+                segs.append((t + seg.start, t + seg.end, seg.text))
+                words += [(t + w.start, w.word.strip()) for w in seg.words or []]
+            t += step
+    return segs, words
 
 
 def safe(name: str) -> str:
